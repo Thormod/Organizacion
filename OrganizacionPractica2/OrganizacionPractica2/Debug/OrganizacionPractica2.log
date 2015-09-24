@@ -1,10 +1,13 @@
-﻿Compilación iniciada a las 23/09/2015 07:48:30 p.m..
+﻿Compilación iniciada a las 23/09/2015 09:53:08 p.m..
      1>Proyecto "C:\Users\w7\Documents\LUIS\Organizacón\OrganizacionPractica2\OrganizacionPractica2\OrganizacionPractica2.vcxproj" en el nodo 2 (Build destinos).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Yu"stdafx.h" /Fp"Debug\OrganizacionPractica2.pch" /Fo"Debug\\" /Fd"Debug\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt OrganizacionPractica2.cpp
          OrganizacionPractica2.cpp
-     1>c:\users\w7\documents\luis\organizacón\organizacionpractica2\organizacionpractica2\organizacionpractica2.cpp(238): warning C4101: 'us': variable local sin referencia
-     1>c:\users\w7\documents\luis\organizacón\organizacionpractica2\organizacionpractica2\organizacionpractica2.cpp(264): warning C4101: 'us': variable local sin referencia
+     1>c:\users\w7\documents\luis\organizacón\organizacionpractica2\organizacionpractica2\organizacionpractica2.cpp(249): warning C4405: 'neg': el identificador es una palabra reservada
+     1>c:\users\w7\documents\luis\organizacón\organizacionpractica2\organizacionpractica2\organizacionpractica2.cpp(245): warning C4102: 'taylor': etiqueta sin referencia
+     1>c:\users\w7\documents\luis\organizacón\organizacionpractica2\organizacionpractica2\organizacionpractica2.cpp(237): warning C4101: 'mul': variable local sin referencia
+     1>c:\users\w7\documents\luis\organizacón\organizacionpractica2\organizacionpractica2\organizacionpractica2.cpp(298): warning C4101: 'us': variable local sin referencia
+     1>c:\users\w7\documents\luis\organizacón\organizacionpractica2\organizacionpractica2\organizacionpractica2.cpp(324): warning C4101: 'us': variable local sin referencia
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\w7\Documents\LUIS\Organizacón\OrganizacionPractica2\Debug\OrganizacionPractica2.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"C:\Users\w7\Documents\LUIS\Organizacón\OrganizacionPractica2\Debug\OrganizacionPractica2.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\w7\Documents\LUIS\Organizacón\OrganizacionPractica2\Debug\OrganizacionPractica2.lib" /MACHINE:X86 Debug\OrganizacionPractica2.obj
          Debug\stdafx.obj
@@ -13,4 +16,4 @@
 
 Compilación correcta.
 
-Tiempo transcurrido 00:00:01.19
+Tiempo transcurrido 00:00:00.97
