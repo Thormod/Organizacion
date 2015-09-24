@@ -131,8 +131,8 @@ double fpot_auxiliary(double base, int exponent) {
 		loop mult
 			jmp fin
 
-			mult :
-		movsd xmm0, [result]
+		mult :
+			movsd xmm0, [result]
 			mulsd xmm0, [base]
 			movsd[result], xmm0
 			jmp  ciclo
@@ -483,6 +483,52 @@ void flog10() {
 	cout << "****** RESULTADO (Series): " << endl;
 }
 
+void feuler() {
+	//Variables declaration
+	int iteration = 0, den;
+	double degrees, num, dden, result = 0,x;
+	
+	//double sin, dsin, cos, dcos;
+	//Variables initialization
+	cout << "****** INGRESA EL ARGUMENTO: ";
+	cin >> x;
+	//degrees *= grades_to_radians_constant;
+
+	// e^x = x^n / (n)!
+	_asm {
+	taylor:
+		//(x)^n
+		push[iteration] //Push final argument (exponent) (n = tolerance)
+		sub esp, 8
+		movsd xmm0, [x]
+		movsd[esp], xmm0 //Push first argument (base)(x)
+		call fpot_auxiliary //Call pot
+		add esp, 0Ch
+		fstp[num] //num = x^n
+
+		//(n)!
+		push[iteration] //push iteration
+		call ffact_auxiliary //call factorial
+		add esp, 4
+		mov[den], eax //den = (n)!
+		cvtsi2sd xmm0, [den]
+		movsd[dden], xmm0
+
+		//e^x = x^n / (n)!
+		movsd xmm0, [num] //x^n
+		divsd xmm0, [dden] //x^n/(n)!
+		addsd xmm0, [result] //result += x^n/(n)!
+		movsd[result], xmm0 
+
+		//Repeat until iteration < limit 
+		inc[iteration]
+		cmp[iteration], 9 //Change this value for chage the number of repetitions
+		jne taylor
+	}
+
+	cout << "****** RESULTADO (Series): " << result << endl;
+}
+
 void printMenu() {
 	cout<< "********************************************************" << endl 
 		<< "****** CALCULATHOR ******" << endl
@@ -499,7 +545,7 @@ void printMenu() {
 		<< "****** 9. POTENCIA" << endl
 		<< "****** 10. LOGARITMO EN BASE 2 'log2(x)'" << endl
 		<< "****** 11. - LOGARITMO EN BASE 10 'log10(x)'" << endl
-		<< "****** 12. - EULER" << endl
+		<< "****** 12. EULER" << endl
 		<< "****** 13. FACTORIAL" << endl
 		<< "****** 0 SALIR" << endl
 		<< "****** INGRESA ELECCION: ";
@@ -549,6 +595,7 @@ int main() {
 			flog10();
 			break;
 		case 12: //e^x
+			feuler();
 			break;
 		case 13: //Fact
 			ffact();
