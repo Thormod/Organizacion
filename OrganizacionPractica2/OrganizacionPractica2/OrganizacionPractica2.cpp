@@ -76,41 +76,6 @@ void fdiv() {
 	cout << "****** RESULTADO: " << first_operand << endl;
 }
 
-void fcos() {
-	//Variables declaration
-	double degrees;
-	//Variables initialization
-	cout << "****** INGRESA ANGULO EN GRADOS: ";
-	cin >> degrees;
-	degrees *= grades_to_radians_constant;
-	//ASM code
-	_asm {
-		fld[degrees] //Load the float variable
-			fcos //Cos function
-			fstp[degrees] //Store the float variable
-	}
-	cout << "****** RESULTADO (Funcion coprocesador): " << degrees << endl;
-}
-
-void ftan() {
-	//Variables declaration
-	double degrees, result;
-	//Variables initialization
-	cout << "****** INGRESA ANGULO EN GRADOS: ";
-	cin >> degrees;
-	degrees *= grades_to_radians_constant;
-	//ASM code
-	_asm {
-		fld[degrees] //Load the float variable
-			fsin //Sin function
-			fld[degrees] //
-			fcos
-			fdivp st(1), st(0)
-			fstp[result]
-	}
-	cout << "****** RESULTADO (Funcion coprocesador): " << result << endl;
-}
-
 double fsqrt_auxiliary(double operand) {
 	double result = 0;
 
@@ -192,17 +157,28 @@ void fpot() {
 	cout << "****** RESULTADO: " << result << endl;
 }
 
-int ffact_auxiliarty(int base) {
-	int result = 1;
+int ffact_auxiliary(int base) {
+	int result = 1, one = 1;
 	__asm {
 		// ECX = base
 		mov ecx, [base]
+		
+		cmp [base], 0
+		jne mult
+		
+		case_0 :
+			mov eax, [one]
+			mov[result], eax
+			jmp endd
 
-			mult:
-		mov eax, [result]
+		mult:
+			mov eax, [result]
 			mul ecx
 			mov[result], eax
 			loop mult
+
+		endd:
+
 	}
 
 	return result;
@@ -215,7 +191,7 @@ void ffact() {
 	cout << "****** INGRESA BASE (solo enteros positivos): ";
 	cin >> base;
 	//Call the auxiliary fuction
-	result = ffact_auxiliarty(base);
+	result = ffact_auxiliary(base);
 	cout << "****** RESULTADO: " << result << endl;
 }
 
@@ -232,47 +208,47 @@ double fsin_auxiliary(double radians) {
 	taylor:
 		//(-1)^n
 		push[iteration] //Push final argument (n = tolerance)
-			sub esp, 8
-			movsd xmm0, [sign]
-			movsd[esp], xmm0 //Push first argument (-1)
-			call fpot_auxiliary //Call pot
-			add esp, 0Ch
-			fstp[num] //num = -1^n
+		sub esp, 8
+		movsd xmm0, [sign]
+		movsd[esp], xmm0 //Push first argument (-1)
+		call fpot_auxiliary //Call pot
+		add esp, 0Ch
+		fstp[num] //num = -1^n
 
 		//2n + 1
-			mov eax, [iteration] //Move tolerance (n) to eax
-			mul[two] //eax = eax * 2 -> eax = 2n
-			inc eax //eax++
-			mov[var], eax //var = 2n + 1
+		mov eax, [iteration] //Move tolerance (n) to eax
+		mul[two] //eax = eax * 2 -> eax = 2n
+		inc eax //eax++
+		mov[var], eax //var = 2n + 1
 
 		//(2n + 1)!
-			push[var] //push var
-			call ffact_auxiliarty //call factorial
-			add esp, 4
-			mov[den], eax //den = (2n + 1)!
-			cvtsi2sd xmm0, [den]
-			movsd[dden], xmm0
+		push[var] //push var
+		call ffact_auxiliary //call factorial
+		add esp, 4
+		mov[den], eax //den = (2n + 1)!
+		cvtsi2sd xmm0, [den]
+		movsd[dden], xmm0
 
-			//x^(2n+1)
-			push[var] //Push final argument (2n+1)
-			sub esp, 8
-			movsd xmm0, [radians]
-			movsd[esp], xmm0 //Push first argument (x = radians)
-			call fpot_auxiliary //Call pot
-			add esp, 0Ch
-			fstp[x] //x = x^(2n+1)
+		//x^(2n+1)
+		push[var] //Push final argument (2n+1)
+		sub esp, 8
+		movsd xmm0, [radians]
+		movsd[esp], xmm0 //Push first argument (x = radians)
+		call fpot_auxiliary //Call pot
+		add esp, 0Ch
+		fstp[x] //x = x^(2n+1)
 
 		//(-1^n /(2n+1)!) * x^(2n+1)
-			movsd xmm0, [num] //- 1 ^ n
-			divsd xmm0, [dden] //-1^n /(2n+1)!
-			mulsd xmm0, [x] //(-1^n /(2n+1)!) * x^(2n+1)
-			addsd xmm0, [result]
-			movsd[result], xmm0 //result += (-1^n /(2n+1)!) * x^(2n+1
+		movsd xmm0, [num] //- 1 ^ n
+		divsd xmm0, [dden] //-1^n /(2n+1)!
+		mulsd xmm0, [x] //(-1^n /(2n+1)!) * x^(2n+1)
+		addsd xmm0, [result]
+		movsd[result], xmm0 //result += (-1^n /(2n+1)!) * x^(2n+1
 
 		//Repeat until iteration < limit 
-			inc[iteration]
-			cmp[iteration], 5 //Change this value for chage the number of repetitions
-			jne taylor
+		inc[iteration]
+		cmp[iteration], 9 //Change this value for chage the number of repetitions
+		jne taylor
 	}
 
 	return result;
@@ -288,23 +264,158 @@ void fsin() {
 	//ASM code (processor)
 	_asm {
 		fld[degrees] //Load the float variable
-			fsin //Sin function
-			fstp[proc] //Store the float variable
+		fsin //Sin function
+		fstp[proc] //Store the float variable
 	}
 	cout << "****** RESULTADO (coprocesador): " << proc << endl;
-
 	//ASM code (our implementation)
 	__asm {
 		sub esp, 8
-			movsd xmm0, [degrees]
-			movsd[esp], xmm0
-			call fsin_auxiliary
-			add esp, 8
-			fstp[us]
+		movsd xmm0, [degrees]
+		movsd[esp], xmm0
+		call fsin_auxiliary
+		add esp, 8
+		fstp[us]
 	}
 
 	cout << "****** RESULTADO (Series): " << us << endl;
 }
+
+//SUM 0 to inf ( (-1^n /(2n)!) * x^(2n) )
+double fcos_auxiliary(double radians) {
+	//Variables
+	/*
+	* result -> result of the operation
+	* sign -> Sign calculation of the Taylor serie
+	* num -> Taylor serie numerator
+	*/
+	double result = 0, sign = -1, num, x, dden;
+	int iteration = 0, two = 2, den, var;
+
+	//Taylor Series
+	__asm {
+	taylor:
+		//(-1)^n
+		push[iteration] //Push final argument (n = tolerance)
+		sub esp, 8
+		movsd xmm0, [sign]
+		movsd[esp], xmm0 //Push first argument (-1)
+		call fpot_auxiliary //Call pot
+		add esp, 0Ch
+		fstp[num] //num = -1^n
+
+		//2n
+		mov eax, [iteration] //Move tolerance (n) to eax
+		mul[two] //eax = eax * 2 -> eax = 2n
+		mov[var], eax //var = 2n
+
+		//(2n)!
+		push[var] //push var
+		call ffact_auxiliary //call factorial
+		add esp, 4
+		mov[den], eax //den = (2n)!
+		cvtsi2sd xmm0, [den]
+		movsd[dden], xmm0
+
+		//x^(2n)
+		push[var] //Push final argument (2n)
+		sub esp, 8
+		movsd xmm0, [radians]
+		movsd[esp], xmm0 //Push first argument (x = radians)
+		call fpot_auxiliary //Call pot
+		add esp, 0Ch
+		fstp[x] //x = x^(2n)
+
+		//(-1^n /(2n)!) * x^(2n)
+		movsd xmm0, [num] //- 1 ^ n
+		divsd xmm0, [dden] //-1^n /(2n)!
+		mulsd xmm0, [x] //(-1^n /(2n+1)!) * x^(2n)
+		addsd xmm0, [result]
+		movsd[result], xmm0 //result += (-1^n /(2n)!) * x^(2n)
+
+		//Repeat until iteration < limit 
+		inc[iteration]
+		cmp[iteration], 9 //Change this value for chage the number of repetitions
+		jne taylor
+	}
+
+	return result;
+}
+
+void fcos() {
+	//Variables declaration
+	double degrees, proc, us;
+	//Variables initialization
+	cout << "****** INGRESA ANGULO EN GRADOS: ";
+	cin >> degrees;
+	degrees *= grades_to_radians_constant;
+
+	//ASM code
+	_asm {
+		fld[degrees] //Load the float variable
+		fcos //Cos function
+		fstp[proc] //Store the float variable
+	}
+	cout << "****** RESULTADO (Funcion coprocesador): " << proc << endl;
+	//ASM code (our implementation)
+	__asm {
+		sub esp, 8
+		movsd xmm0, [degrees]
+		movsd[esp], xmm0
+		call fcos_auxiliary
+		add esp, 8
+		fstp[us]
+	}
+
+	cout << "****** RESULTADO (Series): " << us << endl;
+}
+
+void ftan() {
+	//Variables declaration
+	double degrees, result;
+	//Variables initialization
+	cout << "****** INGRESA ANGULO EN GRADOS: ";
+	cin >> degrees;
+	degrees *= grades_to_radians_constant;
+	//ASM code
+	_asm {
+		fld[degrees] //Load the float variable
+		fsin //Sin function
+		fld[degrees] //
+		fcos
+		fdivp st(1), st(0)
+		fstp[result]
+	}
+	cout << "****** RESULTADO (Funcion coprocesador): " << result << endl;
+
+	double sin, dsin, cos, dcos;
+
+	_asm {
+		//sin(degrees)
+		sub esp, 8
+		movsd xmm0, [degrees]
+		movsd[esp], xmm0
+		call fsin_auxiliary //Call sin
+		add esp, 8
+		fstp[sin]
+
+		//cos(degrees)
+		sub esp, 8
+		movsd xmm0, [degrees]
+		movsd[esp], xmm0
+		call fcos_auxiliary //Call cos
+		add esp, 8
+		fstp[cos]
+		
+		//tan = sin(degrees)/cos(degrees)
+		movsd xmm0, [sin] //sin(degrees)
+		divsd xmm0, [cos] //sin(degrees)/cos(degrees)
+		movsd[result], xmm0 //result = sin(degrees)/cos(degrees)
+	}
+	cout << "****** RESULTADO (Series): " << result << endl;
+}
+
+
 
 //LOGARITHMIC OPERATIONS
 void flog2() {
@@ -320,9 +431,9 @@ void flog2() {
 	__asm {
 		//log2(x)
 		fld[one] //ST(1) = 1
-			fld[x] //ST(0) = x
-			fyl2x //ST(1) = (ST(1) * log2(ST(0))) -> ST(1) = 1 * log2(x)
-			fstp[proc] //proc = ST(1)
+		fld[x] //ST(0) = x
+		fyl2x //ST(1) = (ST(1) * log2(ST(0))) -> ST(1) = 1 * log2(x)
+		fstp[proc] //proc = ST(1)
 	}
 	cout << "****** RESULTADO (coprocesador): " << proc << endl;
 
@@ -347,21 +458,20 @@ void flog10() {
 	__asm {
 		//log2(10)
 		fld[one] //ST(1) = 1
-			fld[ten] //ST(0) = 10
-			fyl2x //ST(1) = (ST(1) * log2(ST(0))) -> ST(1) = 1 * log2(10)
-			fstp[var] //var = ST(1)
+		fld[ten] //ST(0) = 10
+		fyl2x //ST(1) = (ST(1) * log2(ST(0))) -> ST(1) = 1 * log2(10)
+		fstp[var] //var = ST(1)
 
 		//1/log2(10)
-
-			movsd xmm0, [one]
-			divsd xmm0, [var]
-			movsd[var], xmm0 //var = 1/log2(10)
+		movsd xmm0, [one]
+		divsd xmm0, [var]
+		movsd[var], xmm0 //var = 1/log2(10)
 
 		//(1/log2(10)) * log2(x) -> log10(x)
-			fld[var] //ST(1) = var -> ST(1) = 1/log2(10)
-			fld[x] //ST(0) = x
-			fyl2x //ST(1) = (ST(1) * log2(ST(0))) -> ST(1) = (1/log2(10)) * log2(x) -> ST(1) = log10(x)
-			fstp[proc] //proc = ST(1)
+		fld[var] //ST(1) = var -> ST(1) = 1/log2(10)
+		fld[x] //ST(0) = x
+		fyl2x //ST(1) = (ST(1) * log2(ST(0))) -> ST(1) = (1/log2(10)) * log2(x) -> ST(1) = log10(x)
+		fstp[proc] //proc = ST(1)
 
 	}
 	cout << "****** RESULTADO (coprocesador): " << proc << endl;
@@ -374,7 +484,8 @@ void flog10() {
 }
 
 void printMenu() {
-	cout << "****** CALCULATHOR ******" << endl
+	cout<< "********************************************************" << endl 
+		<< "****** CALCULATHOR ******" << endl
 		<< "****** OPERACIONES BASICAS" << endl
 		<< "****** 1. SUMA" << endl
 		<< "****** 2. RESTA" << endl
@@ -384,14 +495,15 @@ void printMenu() {
 		<< "****** 5. SENO" << endl
 		<< "****** 6. COSENO" << endl
 		<< "****** 7. TANGENTE" << endl
-		<< "****** 8. RAIZ CUADRADA" << endl
+		<< "****** 8. - RAIZ CUADRADA" << endl
 		<< "****** 9. POTENCIA" << endl
 		<< "****** 10. LOGARITMO EN BASE 2 'log2(x)'" << endl
-		<< "****** 11. LOGARITMO EN BASE 10 'log10(x)'" << endl
-		<< "****** 12. EULER" << endl
+		<< "****** 11. - LOGARITMO EN BASE 10 'log10(x)'" << endl
+		<< "****** 12. - EULER" << endl
 		<< "****** 13. FACTORIAL" << endl
 		<< "****** 0 SALIR" << endl
 		<< "****** INGRESA ELECCION: ";
+		
 }
 
 int main() {
