@@ -21,9 +21,9 @@ void fadd() {
 	//ASM code
 	_asm {
 		fld dword ptr[first_operand]
-		fld dword ptr[second_operand]
-		fadd
-		fst dword ptr[first_operand]
+			fld dword ptr[second_operand]
+			fadd
+			fst dword ptr[first_operand]
 	}
 	cout << "****** RESULTADO: " << first_operand << endl;
 }
@@ -39,9 +39,9 @@ void fsub() {
 	//ASM code
 	_asm {
 		fld dword ptr[first_operand]
-		fld dword ptr[second_operand]
-		fsub
-		fst dword ptr[first_operand]
+			fld dword ptr[second_operand]
+			fsub
+			fst dword ptr[first_operand]
 	}
 	cout << "****** RESULTADO: " << first_operand << endl;
 }
@@ -57,9 +57,9 @@ void fmul() {
 	//ASM code
 	_asm {
 		fld dword ptr[first_operand]
-		fld dword ptr[second_operand]
-		fmul
-		fst dword ptr[first_operand]
+			fld dword ptr[second_operand]
+			fmul
+			fst dword ptr[first_operand]
 	}
 	cout << "****** RESULTADO: " << first_operand << endl;
 }
@@ -75,9 +75,9 @@ void fdiv() {
 	//ASM code
 	_asm {
 		fld dword ptr[first_operand]
-		fld dword ptr[second_operand]
-		fdiv
-		fst dword ptr[first_operand]
+			fld dword ptr[second_operand]
+			fdiv
+			fst dword ptr[first_operand]
 	}
 	cout << "****** RESULTADO: " << first_operand << endl;
 }
@@ -92,8 +92,8 @@ void fcos() {
 	//ASM code
 	_asm {
 		fld dword ptr[degrees] //Load the float variable
-		fcos //Cos function
-		fst dword ptr[degrees] //Store the float variable
+			fcos //Cos function
+			fst dword ptr[degrees] //Store the float variable
 	}
 	cout << "****** RESULTADO (Funcion coprocesador): " << degrees << endl;
 }
@@ -108,11 +108,11 @@ void ftan() {
 	//ASM code
 	_asm {
 		fld dword ptr[degrees] //Load the float variable
-		fsin //Sin function
-		fld dword ptr[degrees] //
-		fcos
-		fdivp st(1), st(0)
-		fst dword ptr[result]
+			fsin //Sin function
+			fld dword ptr[degrees] //
+			fcos
+			fdivp st(1), st(0)
+			fst dword ptr[result]
 	}
 	cout << "****** RESULTADO (Funcion coprocesador): " << result << endl;
 }
@@ -126,51 +126,49 @@ void fsqrt() {
 	//ASM code
 	_asm {
 		fld dword ptr[first_operand]
-		fsqrt
-		fst dword ptr[first_operand]
+			fsqrt
+			fst dword ptr[first_operand]
 	}
 	cout << "****** RESULTADO: " << first_operand << endl;
 }
 
-float fpot_auxiliary(float basef, float exponentf) {
-	int base = (int) basef;
-	int exponent = (int) exponentf;
-	int result = base;
+float fpot_auxiliary(float base, int exponent) {
+	float result = 1;
 
 	//ASM code
 	__asm {
-		//comparation with 1
-		cmp [exponent], 1
-		je fin
-		
-		//exponent--
+		//exponent++
 		mov eax, [exponent]
-		dec eax
-		mov[exponent], eax
+			inc eax
+			mov[exponent], eax
 
 		// ECX = exponent
 		mov ecx, [exponent]
-	
-		mult:
-		mov eax, [result]
-		mul [base]
-		mov [result], eax
-		loop mult
 
-		fin:
+			ciclo:
+		loop mult
+			jmp fin
+
+			mult :
+		fld dword ptr[result]
+			fmul[base]
+			fst dword ptr[result]
+			jmp  ciclo
+
+			fin :
 	}
 
-	float resultf = (float) result;
-	return resultf;
+	return result;
 }
 
 void fpot() {
 	//Variables declaration
-	float base, exponent, result;
+	float base, result;
+	int exponent;
 	//Variables initialization
 	cout << "****** INGRESA BASE: ";
 	cin >> base;
-	cout << "****** INGRESA EXPONENTE: ";
+	cout << "****** INGRESA EXPONENTE (solo enteros positivos): ";
 	cin >> exponent;
 	//Call the auxiliary function
 	result = fpot_auxiliary(base, exponent);
@@ -178,20 +176,20 @@ void fpot() {
 }
 
 float ffact_auxiliary(float basef) {
-	int base = (int) basef;
+	int base = (int)basef;
 	int result = 1;
 	__asm {
 		// ECX = base
 		mov ecx, [base]
 
-		mult:
+			mult:
 		mov eax, [result]
-		mul ecx
-		mov [result], eax
-		loop mult
+			mul ecx
+			mov[result], eax
+			loop mult
 	}
-	
-	float resultf = (float) result;
+
+	float resultf = (float)result;
 	return resultf;
 }
 
@@ -206,14 +204,14 @@ void ffact() {
 	cout << "****** RESULTADO: " << result << endl;
 }
 
-//CIENTIFIC OPERATIONS
+//TRIGONOMETRIC OPERATIONS
 
 //SUM 0 to inf ( -1^n /(2n +1)! * x^2n+1 )
 float fsin_auxiliary() {
 	__asm {
 		push 5
-		call ffact_auxiliary
-		
+			call ffact_auxiliary
+
 	}
 	return 0;
 }
@@ -234,29 +232,128 @@ void fsin() {
 	cout << "****** RESULTADO (Funcion coprocesador): " << degrees << endl;
 }
 
-int main()
-{
-	cout << "****** CALCULATHOR ******";
-	cout << "\n ****** OPERACIONES BASICAS";
-	cout << "\n ****** 1. SUMA";
-	cout << "\n ****** 2. RESTA";
-	cout << "\n ****** 3. MULTIPLICACION";
-	cout << "\n ****** 4. DIVISION";
-	cout << "\n ****** OPERACIONES CIENTIFICAS";
-	cout << "\n ****** 5. SENO";
-	cout << "\n ****** 6. COSENO";
-	cout << "\n ****** 7. TANGENTE";
-	cout << "\n ****** 8. RAIZ CUADRADA";
-	cout << "\n ****** 9. POTENCIA";
-	cout << "\n ****** 10. LOGARITMO NATURAL";
-	cout << "\n ****** 11. LOGARITMO";
-	cout << "\n ****** 12. EULER";
-	cout << "\n ****** 13. FACTORIAL";
-	cout << "\n ****** 14. aux";
-	cout << "\n ****** INGRESA ELECCION: ";
-	int choice = 0;
-	cin >> choice;
-	switch (choice) {
+//LOGARITHMIC OPERATIONS
+void flog2() {
+	//Variables declaration
+	float x, one, proc, us;
+
+	//Variables initialization
+	cout << "****** INGRESA EL ARGUMENTO: ";
+	cin >> x;
+	one = 1;
+
+	//ASM code (processor)
+	__asm {
+		//log2(x)
+		fld dword ptr[one] //ST(1) = 1
+			fld dword ptr [x] //ST(0) = x
+			fyl2x //ST(1) = (ST(1) ? log2(ST(0))) -> ST(1) = 1 * log2(x)
+			fst dword ptr[proc] //proc = ST(1)
+	}
+	cout << "****** RESULTADO (Funcion coprocesador): " << proc << endl;
+
+	//ASM code (our implementation)
+	__asm {
+
+	}
+	cout << "****** RESULTADO (Series): " << endl;
+}
+
+void flog10() {
+	//Variables declaration
+	float x, one, ten, var, proc, us;
+
+	//Variables initialization
+	cout << "****** INGRESA EL ARGUMENTO: ";
+	cin >> x;
+	one = 1;
+	ten = 10;
+
+	//ASM code (processor)
+	__asm {
+		//log2(10)
+		fld dword ptr[one] //ST(1) = 1
+			fld dword ptr[ten] //ST(0) = 10
+			fyl2x //ST(1) = (ST(1) ? log2(ST(0))) -> ST(1) = 1 * log2(10)
+			fst dword ptr[var] //var = ST(1)
+
+		//1/log2(10)
+			fld dword ptr[one] //ST(1) = 1
+			fld dword ptr[var] //ST(0) = var -> ST(0) = log2(10)
+			fdiv //ST(1) = ST(1)/ST(0) -> ST(1) = 1/log2(10)
+
+		//(1/log2(10)) * log2(x) -> log10(x)
+			fld dword ptr[x] //ST(0) = x
+			fyl2x //ST(1) = (ST(1) ? log2(ST(0))) -> ST(1) = (1/log2(10)) * log2(x) -> ST(1) = log10(x)
+			fst dword ptr[proc] //proc = ST(1)
+
+	}
+	cout << "****** RESULTADO (Funcion coprocesador): " << proc << endl;
+
+	//ASM code (our implementation)
+	__asm {
+
+	}
+	cout << "****** RESULTADO (Series): " << endl;
+}
+
+//CALLING FUNCTIONS
+int fun(int a, int b) {
+	__asm {
+		mov eax, [a]
+		add eax,[b]
+		mov [a], eax
+	}
+
+	return a;
+}
+
+void call() {
+	int a, b, result;
+	cin >> a >> b;
+	
+	__asm {
+			push [b]
+			push [a]
+			call fun
+			add esp, 8
+			mov dword ptr[result], eax
+	}
+
+	cout << result << endl;
+}
+
+void printMenu() {
+	cout << "****** CALCULATHOR ******" << endl
+		<< "****** OPERACIONES BASICAS" << endl
+		<< "****** 1. SUMA" << endl
+		<< "****** 2. RESTA" << endl
+		<< "****** 3. MULTIPLICACION" << endl
+		<< "****** 4. DIVISION" << endl
+		<< "****** OPERACIONES CIENTIFICAS" << endl
+		<< "****** 5. SENO" << endl
+		<< "****** 6. COSENO" << endl
+		<< "****** 7. TANGENTE" << endl
+		<< "****** 8. RAIZ CUADRADA" << endl
+		<< "****** 9. POTENCIA" << endl
+		<< "****** 10. LOGARITMO EN BASE 2 'log2(x)'" << endl
+		<< "****** 11. LOGARITMO EN BASE 10 'log10(x)'" << endl
+		<< "****** 12. EULER" << endl
+		<< "****** 13. FACTORIAL" << endl
+		<< "****** 14. CALL" << endl
+		<< "****** 0 SALIR" << endl
+		<< "****** INGRESA ELECCION: ";
+}
+
+int main() {
+	int choice;
+	do {
+		printMenu();
+		cin >> choice;
+
+		switch (choice) {
+		case 0: //Exit
+			break;
 		case 1: //Add
 			fadd();
 			break;
@@ -284,23 +381,26 @@ int main()
 		case 9: //Pot
 			fpot();
 			break;
-		case 10: //Ln
+		case 10: //Log2(x)
+			flog2();
 			break;
-		case 11: //Log
+		case 11: //Log10(x)
+			flog10();
 			break;
-		case 12: //e
+		case 12: //e^x
 			break;
 		case 13: //Fact
 			ffact();
 			break;
 		case 14:
-			fsin_auxiliary();
+			call();
 			break;
 		default:
-			cout << "****** OPCION INVALIDA ******";
+			cout << "****** OPCION INVALIDA ******" << endl;
 			break;
-	}
-	system("pause");
+		}
+	} while (choice);
+ 
+	cout << "HASTA LA PROXIMA" << endl;
 	return 0;
 }
-
