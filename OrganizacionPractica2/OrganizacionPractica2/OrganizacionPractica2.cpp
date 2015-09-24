@@ -4,15 +4,13 @@
 #include "stdafx.h"
 
 //CONSTANT VARIABLES
-const float grades_to_radians_constant = 0.0174532925f;
-const float cero = 0;
-const float one = 1;
+const double grades_to_radians_constant = 0.0174532925;
 /******************/
 
 //BASIC OPERATIONS
 void fadd() {
 	//Variables declaration
-	float first_operand, second_operand;
+	double first_operand, second_operand;
 	//Variables initialization
 	cout << "****** INGRESA PRIMER OPERANDO: ";
 	cin >> first_operand;
@@ -20,17 +18,16 @@ void fadd() {
 	cin >> second_operand;
 	//ASM code
 	_asm {
-		fld dword ptr[first_operand]
-			fld dword ptr[second_operand]
-			fadd
-			fst dword ptr[first_operand]
+		movsd xmm0, [first_operand]
+			addsd xmm0, [second_operand]
+			movsd[first_operand], xmm0
 	}
 	cout << "****** RESULTADO: " << first_operand << endl;
 }
 
 void fsub() {
 	//Variables declaration
-	float first_operand, second_operand;
+	double first_operand, second_operand;
 	//Variables initialization
 	cout << "****** INGRESA PRIMER OPERANDO: ";
 	cin >> first_operand;
@@ -38,17 +35,16 @@ void fsub() {
 	cin >> second_operand;
 	//ASM code
 	_asm {
-		fld dword ptr[first_operand]
-			fld dword ptr[second_operand]
-			fsub
-			fst dword ptr[first_operand]
+		movsd xmm0, [first_operand]
+			subsd xmm0, [second_operand]
+			movsd[first_operand], xmm0
 	}
 	cout << "****** RESULTADO: " << first_operand << endl;
 }
 
 void fmul() {
 	//Variables declaration
-	float first_operand, second_operand;
+	double first_operand, second_operand;
 	//Variables initialization
 	cout << "****** INGRESA PRIMER OPERANDO: ";
 	cin >> first_operand;
@@ -56,17 +52,16 @@ void fmul() {
 	cin >> second_operand;
 	//ASM code
 	_asm {
-		fld dword ptr[first_operand]
-			fld dword ptr[second_operand]
-			fmul
-			fst dword ptr[first_operand]
+		movsd xmm0, [first_operand]
+			mulsd xmm0, [second_operand]
+			movsd[first_operand], xmm0
 	}
 	cout << "****** RESULTADO: " << first_operand << endl;
 }
 
 void fdiv() {
 	//Variables declaration
-	float first_operand, second_operand;
+	double first_operand, second_operand;
 	//Variables initialization
 	cout << "****** INGRESA PRIMER OPERANDO: ";
 	cin >> first_operand;
@@ -74,51 +69,50 @@ void fdiv() {
 	cin >> second_operand;
 	//ASM code
 	_asm {
-		fld dword ptr[first_operand]
-			fld dword ptr[second_operand]
-			fdiv
-			fst dword ptr[first_operand]
+		movsd xmm0, [first_operand]
+			divsd xmm0, [second_operand]
+			movsd[first_operand], xmm0
 	}
 	cout << "****** RESULTADO: " << first_operand << endl;
 }
 
 void fcos() {
 	//Variables declaration
-	float degrees;
+	double degrees;
 	//Variables initialization
 	cout << "****** INGRESA ANGULO EN GRADOS: ";
 	cin >> degrees;
 	degrees *= grades_to_radians_constant;
 	//ASM code
 	_asm {
-		fld dword ptr[degrees] //Load the float variable
+		fld[degrees] //Load the float variable
 			fcos //Cos function
-			fst dword ptr[degrees] //Store the float variable
+			fstp[degrees] //Store the float variable
 	}
 	cout << "****** RESULTADO (Funcion coprocesador): " << degrees << endl;
 }
 
 void ftan() {
 	//Variables declaration
-	float degrees, result;
+	double degrees, result;
 	//Variables initialization
 	cout << "****** INGRESA ANGULO EN GRADOS: ";
 	cin >> degrees;
 	degrees *= grades_to_radians_constant;
 	//ASM code
 	_asm {
-		fld dword ptr[degrees] //Load the float variable
+		fld[degrees] //Load the float variable
 			fsin //Sin function
-			fld dword ptr[degrees] //
+			fld[degrees] //
 			fcos
 			fdivp st(1), st(0)
-			fst dword ptr[result]
+			fstp[result]
 	}
 	cout << "****** RESULTADO (Funcion coprocesador): " << result << endl;
 }
 
-float fsqrt_auxiliary(float operand) {
-	float result = 0;
+double fsqrt_auxiliary(double operand) {
+	double result = 0;
 
 	//squirt
 	__asm {
@@ -129,7 +123,7 @@ float fsqrt_auxiliary(float operand) {
 
 void fsqrt() {
 	//Variables declaration
-	float operand, proc, us;
+	double operand, proc, us;
 
 	//Variables initialization
 	cout << "****** INGRESA OPERANDO: ";
@@ -137,26 +131,26 @@ void fsqrt() {
 
 	//ASM code (processor)
 	__asm {
-		fld dword ptr[operand]
+		fld[operand]
 			fsqrt
-			fst dword ptr[proc]
+			fstp[proc]
 	}
 	cout << "****** RESULTADO (coprocesador): " << proc << endl;
 
 	//ASM code (our implementation)
 	__asm {
-		push ecx
-			movss xmm0, [operand]
-			movss[esp], xmm0
+		sub esp, 8
+			movsd xmm0, [operand]
+			movsd[esp], xmm0
 			call fsqrt_auxiliary
-			add esp, 4
-			fst[us]
+			add esp, 8
+			fstp[us]
 	}
 	cout << "****** RESULTADO (Series): " << us << endl;
 }
 
-float fpot_auxiliary(float base, int exponent) {
-	float result = 1;
+double fpot_auxiliary(double base, int exponent) {
+	double result = 1;
 
 	//ASM code 
 	__asm {
@@ -173,9 +167,9 @@ float fpot_auxiliary(float base, int exponent) {
 			jmp fin
 
 			mult :
-		fld dword ptr[result]
-			fmul[base]
-			fst dword ptr[result]
+		movsd xmm0, [result]
+			mulsd xmm0, [base]
+			movsd[result], xmm0
 			jmp  ciclo
 
 			fin :
@@ -186,7 +180,7 @@ float fpot_auxiliary(float base, int exponent) {
 
 void fpot() {
 	//Variables declaration
-	float base, result;
+	double base, result;
 	int exponent;
 	//Variables initialization
 	cout << "****** INGRESA BASE: ";
@@ -198,8 +192,7 @@ void fpot() {
 	cout << "****** RESULTADO: " << result << endl;
 }
 
-float ffact_auxiliary(float basef) {
-	int base = (int)basef;
+int ffact_auxiliarty(int base) {
 	int result = 1;
 	__asm {
 		// ECX = base
@@ -212,90 +205,111 @@ float ffact_auxiliary(float basef) {
 			loop mult
 	}
 
-	float resultf = (float)result;
-	return resultf;
+	return result;
 }
 
 void ffact() {
 	//Variables declaration
-	float base, result;
+	int base, result;
 	//Variables initialization
-	cout << "****** INGRESA BASE: ";
+	cout << "****** INGRESA BASE (solo enteros positivos): ";
 	cin >> base;
 	//Call the auxiliary fuction
-	result = ffact_auxiliary(base);
+	result = ffact_auxiliarty(base);
 	cout << "****** RESULTADO: " << result << endl;
 }
 
 //TRIGONOMETRIC OPERATIONS
 
-//SUM 0 to inf ( -1^n /(2n +1)! * x^2n+1 )
-float fsin_auxiliary(float radians) {
+//SUM 0 to inf ( (-1^n /(2n+1)!) * x^(2n+1) )
+double fsin_auxiliary(double radians) {
 	//Variables
-	float result = 0;
-	int tolerance = 6;
-	float num, den, mul;
-	float neg = -1;
+	double result = 0, sign = -1, num, x, dden;
+	int iteration = 0, two = 2, den, var;
 
 	//Taylor Series
 	__asm {
-		//ECX = tolerance
-		mov ecx, [tolerance]
-
-			taylor:
+	taylor:
 		//(-1)^n
-		push ecx
-			push ecx
-			movss xmm0, [neg]
-			movss[esp], xmm0
-			call fpot_auxiliary
-			add esp, 8
-			fst[num]
+		push[iteration] //Push final argument (n = tolerance)
+			sub esp, 8
+			movsd xmm0, [sign]
+			movsd[esp], xmm0 //Push first argument (-1)
+			call fpot_auxiliary //Call pot
+			add esp, 0Ch
+			fstp[num] //num = -1^n
 
-			//Repeat until ECX = 0
-			//	loop taylor
+		//2n + 1
+			mov eax, [iteration] //Move tolerance (n) to eax
+			mul[two] //eax = eax * 2 -> eax = 2n
+			inc eax //eax++
+			mov[var], eax //var = 2n + 1
+
+		//(2n + 1)!
+			push[var] //push var
+			call ffact_auxiliarty //call factorial
+			add esp, 4
+			mov[den], eax //den = (2n + 1)!
+			cvtsi2sd xmm0, [den]
+			movsd[dden], xmm0
+
+			//x^(2n+1)
+			push[var] //Push final argument (2n+1)
+			sub esp, 8
+			movsd xmm0, [radians]
+			movsd[esp], xmm0 //Push first argument (x = radians)
+			call fpot_auxiliary //Call pot
+			add esp, 0Ch
+			fstp[x] //x = x^(2n+1)
+
+		//(-1^n /(2n+1)!) * x^(2n+1)
+			movsd xmm0, [num] //- 1 ^ n
+			divsd xmm0, [dden] //-1^n /(2n+1)!
+			mulsd xmm0, [x] //(-1^n /(2n+1)!) * x^(2n+1)
+			addsd xmm0, [result]
+			movsd[result], xmm0 //result += (-1^n /(2n+1)!) * x^(2n+1
+
+		//Repeat until iteration < limit 
+			inc[iteration]
+			cmp[iteration], 5 //Change this value for chage the number of repetitions
+			jne taylor
 	}
-
-	cout << num;
-
-	den = fpot_auxiliary(neg, tolerance);
-
-	cout << den;
 
 	return result;
 }
 
 void fsin() {
 	//Variables declaration
-	float degrees, proc, us;
+	double degrees, proc, us;
 	//Variables initialization
 	cout << "****** INGRESA ANGULO EN GRADOS: ";
 	cin >> degrees;
 	degrees *= grades_to_radians_constant;
 	//ASM code (processor)
 	_asm {
-		fld dword ptr[degrees] //Load the float variable
+		fld[degrees] //Load the float variable
 			fsin //Sin function
-			fst dword ptr[proc] //Store the float variable
+			fstp[proc] //Store the float variable
 	}
 	cout << "****** RESULTADO (coprocesador): " << proc << endl;
 
 	//ASM code (our implementation)
 	__asm {
-		push ecx
-			movss xmm0, [degrees]
-			movss[esp], xmm0
+		sub esp, 8
+			movsd xmm0, [degrees]
+			movsd[esp], xmm0
 			call fsin_auxiliary
-			add esp, 4
-			fst[us]
+			add esp, 8
+			fstp[us]
 	}
-	cout << "****** RESULTADO (Series): " << endl;
+
+	cout << "****** RESULTADO (Series): " << us << endl;
 }
 
 //LOGARITHMIC OPERATIONS
 void flog2() {
 	//Variables declaration
-	float x, one, proc, us;
+	double x, one, proc, us;
 
 	//Variables initialization
 	cout << "****** INGRESA EL ARGUMENTO: ";
@@ -305,10 +319,10 @@ void flog2() {
 	//ASM code (processor)
 	__asm {
 		//log2(x)
-		fld dword ptr[one] //ST(1) = 1
-			fld dword ptr[x] //ST(0) = x
-			fyl2x //ST(1) = (ST(1) ? log2(ST(0))) -> ST(1) = 1 * log2(x)
-			fst dword ptr[proc] //proc = ST(1)
+		fld[one] //ST(1) = 1
+			fld[x] //ST(0) = x
+			fyl2x //ST(1) = (ST(1) * log2(ST(0))) -> ST(1) = 1 * log2(x)
+			fstp[proc] //proc = ST(1)
 	}
 	cout << "****** RESULTADO (coprocesador): " << proc << endl;
 
@@ -321,7 +335,7 @@ void flog2() {
 
 void flog10() {
 	//Variables declaration
-	float x, one, ten, var, proc, us;
+	double x, one, ten, var, proc, us;
 
 	//Variables initialization
 	cout << "****** INGRESA EL ARGUMENTO: ";
@@ -332,20 +346,22 @@ void flog10() {
 	//ASM code (processor)
 	__asm {
 		//log2(10)
-		fld dword ptr[one] //ST(1) = 1
-			fld dword ptr[ten] //ST(0) = 10
-			fyl2x //ST(1) = (ST(1) ? log2(ST(0))) -> ST(1) = 1 * log2(10)
-			fst dword ptr[var] //var = ST(1)
+		fld[one] //ST(1) = 1
+			fld[ten] //ST(0) = 10
+			fyl2x //ST(1) = (ST(1) * log2(ST(0))) -> ST(1) = 1 * log2(10)
+			fstp[var] //var = ST(1)
 
 		//1/log2(10)
-			fld dword ptr[one] //ST(1) = 1
-			fld dword ptr[var] //ST(0) = var -> ST(0) = log2(10)
-			fdiv //ST(1) = ST(1)/ST(0) -> ST(1) = 1/log2(10)
+
+			movsd xmm0, [one]
+			divsd xmm0, [var]
+			movsd[var], xmm0 //var = 1/log2(10)
 
 		//(1/log2(10)) * log2(x) -> log10(x)
-			fld dword ptr[x] //ST(0) = x
-			fyl2x //ST(1) = (ST(1) ? log2(ST(0))) -> ST(1) = (1/log2(10)) * log2(x) -> ST(1) = log10(x)
-			fst dword ptr[proc] //proc = ST(1)
+			fld[var] //ST(1) = var -> ST(1) = 1/log2(10)
+			fld[x] //ST(0) = x
+			fyl2x //ST(1) = (ST(1) * log2(ST(0))) -> ST(1) = (1/log2(10)) * log2(x) -> ST(1) = log10(x)
+			fstp[proc] //proc = ST(1)
 
 	}
 	cout << "****** RESULTADO (coprocesador): " << proc << endl;
@@ -355,32 +371,6 @@ void flog10() {
 
 	}
 	cout << "****** RESULTADO (Series): " << endl;
-}
-
-//CALLING FUNCTIONS
-int fun(int a, int b) {
-	__asm {
-		mov eax, [a]
-			add eax, [b]
-			mov[a], eax
-	}
-
-	return a;
-}
-
-void call() {
-	int a, b, result;
-	cin >> a >> b;
-
-	__asm {
-		push[b]
-			push[a]
-			call fun
-			add esp, 8
-			mov dword ptr[result], eax
-	}
-
-	cout << result << endl;
 }
 
 void printMenu() {
@@ -400,7 +390,6 @@ void printMenu() {
 		<< "****** 11. LOGARITMO EN BASE 10 'log10(x)'" << endl
 		<< "****** 12. EULER" << endl
 		<< "****** 13. FACTORIAL" << endl
-		<< "****** 14. CALL" << endl
 		<< "****** 0 SALIR" << endl
 		<< "****** INGRESA ELECCION: ";
 }
@@ -451,9 +440,6 @@ int main() {
 			break;
 		case 13: //Fact
 			ffact();
-			break;
-		case 14:
-			call();
 			break;
 		default:
 			cout << "****** OPCION INVALIDA ******" << endl;
