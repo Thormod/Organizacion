@@ -418,6 +418,50 @@ void ftan() {
 
 
 //LOGARITHMIC OPERATIONS
+
+//2 * SUM( ((x-1)/(x+1))^(2*n-1) / (2*n -1)
+double fln(double x) {
+	double num_1, num_2, num; //Numerator
+	double den, one = 1, two = 2, result = 0;
+	int exp, iteration = 0, var;
+
+	_asm {
+		//num_1 = x-1
+		movsd xmm0, [x]
+		subsd xmm0, [one]
+		movsd [num_1],xmm0
+
+		//num_2 = x+1
+		movsd xmm0, [x]
+		addsd xmm0, [one]
+		movsd [num_2],xmm0
+		
+		//num = num_1/num_2
+		movsd [num], [num_1]
+		movsd xmm0, [num_2]
+		divsd [num], xmm0
+
+		//var = 2*n + 1
+		movsd xmm0, [iteration]
+		mulsd xmm0, 2
+		addsd xmm0, 1
+		movsd [var], xmm0
+
+		//num^var
+		push[var]
+		sub esp, 8
+		movsd xmm0, [num]
+		movsd[esp], xmm0 //Push first argument (base)(x)
+		call fpot_auxiliary //Call pot
+		add esp, 0Ch
+		fstp[num] 
+
+		//num^var / var
+		movsd xmm0, [num]
+		divsd xmm0, [var]
+		movsd [result], xmm0
+	}
+}
 void flog2() {
 	//Variables declaration
 	double x, one, proc, us;
@@ -599,6 +643,9 @@ int main() {
 			break;
 		case 13: //Fact
 			ffact();
+			break;
+		case 14: //ln
+			fln(3);
 			break;
 		default:
 			cout << "****** OPCION INVALIDA ******" << endl;
